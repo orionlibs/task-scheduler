@@ -5,7 +5,7 @@
     <version>0.0.1</version>
     <name>Orion Task Scheduler</name>
     <description>Java library facilitating single-execution task scheduling</description>
-    <url>https://github.com/orionlibs/orion-task-scheduler</url>
+    <url>https://github.com/orionlibs/task-scheduler</url>
     
     
     <properties>
@@ -18,9 +18,9 @@
 
 
     <scm>
-        <url>https://github.com/orionlibs/orion-task-scheduler</url>
-        <connection>scm:git:https://github.com/orionlibs/orion-task-scheduler.git</connection>
-        <developerConnection>scm:git:ssh://github.com/orionlibs/orion-task-scheduler.git</developerConnection>
+        <url>https://github.com/orionlibs/task-scheduler</url>
+        <connection>scm:git:https://github.com/orionlibs/task-scheduler.git</connection>
+        <developerConnection>scm:git:ssh://github.com/orionlibs/task-scheduler.git</developerConnection>
     </scm>
 
 

@@ -1,4 +1,4 @@
-package io.github.orionlibs.project_name.config;
+package io.github.orionlibs.task_scheduler.config;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
