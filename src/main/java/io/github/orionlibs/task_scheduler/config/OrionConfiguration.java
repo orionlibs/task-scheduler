@@ -57,11 +57,11 @@ public class OrionConfiguration extends Properties
 
 
     /**
-     * It takes default configuration and custom configuration from the Spring environment.
+     * It takes default configuration and nullable custom configuration from the Spring environment.
      * For each default configuration property, it registers that one if there is no custom
-     * Spring configuration for that property. Otherwise it registers the custom one.
+     * Spring configuration for that property or if springEnv is null. Otherwise it registers the custom one.
      * @param defaultConfiguration
-     * @param springEnv
+     * @param springEnv which can be null
      * @throws IOException if an error occurred when reading from the input stream
      */
     public void loadDefaultAndCustomConfiguration(InputStream defaultConfiguration, Environment springEnv) throws IOException
@@ -69,12 +69,17 @@ public class OrionConfiguration extends Properties
         Properties tempProperties = new Properties();
         tempProperties.load(defaultConfiguration);
         Map<String, String> allProperties = new HashMap<>();
+        boolean doesSpringEnvExist = springEnv != null;
         for(Map.Entry<Object, Object> prop : tempProperties.entrySet())
         {
-            String value = springEnv.getProperty((String)prop.getKey());
-            if(value == null)
+            String value = null;
+            if(doesSpringEnvExist)
             {
-                value = (String)prop.getValue();
+                value = springEnv.getProperty((String)prop.getKey());
+                if(value == null)
+                {
+                    value = (String)prop.getValue();
+                }
             }
             allProperties.put((String)prop.getKey(), value);
         }
