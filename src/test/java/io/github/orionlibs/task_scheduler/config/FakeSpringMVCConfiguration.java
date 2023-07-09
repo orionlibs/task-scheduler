@@ -1,7 +1,5 @@
 package io.github.orionlibs.task_scheduler.config;
 
-import io.github.orionlibs.task_scheduler.NewClass;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -12,9 +10,4 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
                 {"io.github.orionlibs"})
 public class FakeSpringMVCConfiguration
 {
-    @Bean
-    public NewClass newClass()
-    {
-        return new NewClass();
-    }
 }
