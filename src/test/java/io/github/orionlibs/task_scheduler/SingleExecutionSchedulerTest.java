@@ -42,7 +42,7 @@ public class SingleExecutionSchedulerTest
     @Test
     void test_schedule() throws Exception
     {
-        singleExecutionScheduler.schedule(new RunnableExample(), 100, TimeUnit.MILLISECONDS);
+        singleExecutionScheduler.schedule(new RunnableExample("Runnable is running"), 100, TimeUnit.MILLISECONDS);
         singleExecutionScheduler.shutdown();
         assertTrue(listLogHandler.getLogRecords().stream()
                         .anyMatch(record -> record.getMessage().contains("schedule started")));
@@ -57,8 +57,24 @@ public class SingleExecutionSchedulerTest
     {
         ConfigurationService.updateProp("orionlibs.task-scheduler.enabled", "false");
         Exception exception = assertThrows(FeatureIsDisabledException.class, () -> {
-            singleExecutionScheduler.schedule(new RunnableExample(), 100, TimeUnit.MILLISECONDS);
+            singleExecutionScheduler.schedule(new RunnableExample("Runnable is running"), 100, TimeUnit.MILLISECONDS);
         });
         ConfigurationService.updateProp("orionlibs.task-scheduler.enabled", "true");
+    }
+
+
+    @Test
+    void test_schedule_sequentialTasks() throws Exception
+    {
+        singleExecutionScheduler.schedule(new RunnableExample("Runnable1 is running"), 300, TimeUnit.MILLISECONDS);
+        singleExecutionScheduler.schedule(new RunnableExample("Runnable2 is running"), 200, TimeUnit.MILLISECONDS);
+        singleExecutionScheduler.schedule(new RunnableExample("Runnable3 is running"), 100, TimeUnit.MILLISECONDS);
+        singleExecutionScheduler.shutdown();
+        assertTrue(listLogHandler.getLogRecords().stream()
+                        .anyMatch(record -> record.getMessage().contains("schedule started")));
+        Thread.sleep(400);
+        assertTrue(listLogHandler.getLogRecords().get(3).getMessage().equals("Runnable3 is running"));
+        assertTrue(listLogHandler.getLogRecords().get(4).getMessage().equals("Runnable2 is running"));
+        assertTrue(listLogHandler.getLogRecords().get(5).getMessage().equals("Runnable1 is running"));
     }
 }

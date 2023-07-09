@@ -6,6 +6,13 @@ import java.util.logging.Logger;
 public class RunnableExample implements Runnable
 {
     private final static Logger log;
+    private String logMessage;
+
+
+    public RunnableExample(String logMessage)
+    {
+        this.logMessage = logMessage;
+    }
 
     static
     {
@@ -27,6 +34,6 @@ public class RunnableExample implements Runnable
     @Override
     public void run()
     {
-        log.info("Runnable is running");
+        log.info(logMessage);
     }
 }
