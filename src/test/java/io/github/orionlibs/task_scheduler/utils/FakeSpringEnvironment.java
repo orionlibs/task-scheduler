@@ -1,4 +1,4 @@
-package io.github.orionlibs.project_name.utils;
+package io.github.orionlibs.task_scheduler.utils;
 
 import java.util.HashMap;
 import java.util.Map;

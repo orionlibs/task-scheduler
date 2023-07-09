@@ -1,4 +1,4 @@
-package io.github.orionlibs.project_name.config;
+package io.github.orionlibs.task_scheduler.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;

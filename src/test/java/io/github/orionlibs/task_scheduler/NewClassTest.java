@@ -1,8 +1,8 @@
-package io.github.orionlibs.project_name;
+package io.github.orionlibs.task_scheduler;
 
-import io.github.orionlibs.project_name.config.FakeTestingSpringConfiguration;
-import io.github.orionlibs.project_name.config.MockController;
-import io.github.orionlibs.project_name.log.ListLogHandler;
+import io.github.orionlibs.task_scheduler.config.FakeTestingSpringConfiguration;
+import io.github.orionlibs.task_scheduler.config.MockController;
+import io.github.orionlibs.task_scheduler.log.ListLogHandler;
 import java.io.IOException;
 import java.util.logging.LogManager;
 import org.junit.jupiter.api.AfterEach;
@@ -34,7 +34,7 @@ public class NewClassTest
         try
         {
             listLogHandler = new ListLogHandler();
-            LogManager.getLogManager().readConfiguration(NewClassTest.class.getResourceAsStream("/io/github/orionlibs/project-name/configuration/orion-logger.prop"));
+            LogManager.getLogManager().readConfiguration(NewClassTest.class.getResourceAsStream("/io/github/orionlibs/task-scheduler/configuration/orion-logger.prop"));
             NewClass.addLogHandler(listLogHandler);
             mockMvc = MockMvcBuilders
                             .standaloneSetup(new MockController())
@@ -42,7 +42,7 @@ public class NewClassTest
         }
         catch(IOException e)
         {
-            System.err.println("Could not setup logger configuration for Orion project-name: " + e.toString());
+            System.err.println("Could not setup logger configuration for Orion Task Scheduler: " + e.toString());
         }
     }
 

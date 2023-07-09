@@ -1,7 +1,7 @@
-package io.github.orionlibs.project_name;
+package io.github.orionlibs.task_scheduler;
 
-import io.github.orionlibs.project_name.config.ConfigurationService;
-import io.github.orionlibs.project_name.config.OrionConfiguration;
+import io.github.orionlibs.task_scheduler.config.ConfigurationService;
+import io.github.orionlibs.task_scheduler.config.OrionConfiguration;
 import java.io.IOException;
 import java.util.logging.Handler;
 import java.util.logging.LogManager;
