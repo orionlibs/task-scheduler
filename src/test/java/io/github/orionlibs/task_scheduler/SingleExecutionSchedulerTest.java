@@ -1,5 +1,6 @@
 package io.github.orionlibs.task_scheduler;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -7,6 +8,7 @@ import io.github.orionlibs.task_scheduler.config.ConfigurationService;
 import io.github.orionlibs.task_scheduler.log.ListLogHandler;
 import io.github.orionlibs.task_scheduler.utils.RunnableExample;
 import java.io.IOException;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -76,5 +78,20 @@ public class SingleExecutionSchedulerTest
         assertTrue(listLogHandler.getLogRecords().get(3).getMessage().equals("Runnable3 is running"));
         assertTrue(listLogHandler.getLogRecords().get(4).getMessage().equals("Runnable2 is running"));
         assertTrue(listLogHandler.getLogRecords().get(5).getMessage().equals("Runnable1 is running"));
+    }
+
+
+    @Test
+    void test_cancelTask() throws Exception
+    {
+        ScheduledFuture<?> task1 = singleExecutionScheduler.schedule(new RunnableExample("Runnable1 is running"), 200, TimeUnit.MILLISECONDS);
+        ScheduledFuture<?> task2 = singleExecutionScheduler.schedule(new RunnableExample("Runnable2 is running"), 400, TimeUnit.MILLISECONDS);
+        ScheduledFuture<?> task3 = singleExecutionScheduler.schedule(new RunnableExample("Runnable3 is running"), 600, TimeUnit.MILLISECONDS);
+        singleExecutionScheduler.shutdown();
+        singleExecutionScheduler.cancelTask(task3);
+        Thread.sleep(700);
+        assertTrue(listLogHandler.getLogRecords().get(3).getMessage().equals("Runnable1 is running"));
+        assertTrue(listLogHandler.getLogRecords().get(4).getMessage().equals("Runnable2 is running"));
+        assertEquals(5, listLogHandler.getLogRecords().size());
     }
 }
