@@ -1,42 +1,32 @@
 package io.github.orionlibs.task_scheduler;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.github.orionlibs.task_scheduler.config.FakeTestingSpringConfiguration;
+import io.github.orionlibs.task_scheduler.config.ConfigurationService;
 import io.github.orionlibs.task_scheduler.log.ListLogHandler;
 import io.github.orionlibs.task_scheduler.utils.RunnableExample;
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.test.web.servlet.MockMvc;
 
-@ExtendWith(SpringExtension.class)
-@ActiveProfiles("testing")
-@ContextConfiguration(classes = FakeTestingSpringConfiguration.FakeConfiguration.class)
-@WebAppConfiguration
 @TestInstance(Lifecycle.PER_CLASS)
 public class SingleExecutionSchedulerTest
 {
     private ListLogHandler listLogHandler;
-    private MockMvc mockMvc;
-    @Autowired
-    private SingleExecutionScheduler singleExecutionScheduler;
+    private SingleExecutionScheduleService singleExecutionScheduler;
 
 
     @BeforeEach
-    void setUp()
+    void setUp() throws IOException
     {
+        singleExecutionScheduler = new SingleExecutionScheduleService();
         listLogHandler = new ListLogHandler();
-        SingleExecutionScheduler.addLogHandler(listLogHandler);
+        SingleExecutionScheduleService.addLogHandler(listLogHandler);
         RunnableExample.addLogHandler(listLogHandler);
     }
 
@@ -44,7 +34,7 @@ public class SingleExecutionSchedulerTest
     @AfterEach
     public void teardown()
     {
-        SingleExecutionScheduler.removeLogHandler(listLogHandler);
+        SingleExecutionScheduleService.removeLogHandler(listLogHandler);
         RunnableExample.removeLogHandler(listLogHandler);
     }
 
@@ -59,5 +49,16 @@ public class SingleExecutionSchedulerTest
         Thread.sleep(150);
         assertTrue(listLogHandler.getLogRecords().stream()
                         .anyMatch(record -> record.getMessage().contains("Runnable is running")));
+    }
+
+
+    @Test
+    void test_schedule_disabled()
+    {
+        ConfigurationService.updateProp("orionlibs.task-scheduler.enabled", "false");
+        Exception exception = assertThrows(FeatureIsDisabledException.class, () -> {
+            singleExecutionScheduler.schedule(new RunnableExample(), 100, TimeUnit.MILLISECONDS);
+        });
+        ConfigurationService.updateProp("orionlibs.task-scheduler.enabled", "true");
     }
 }

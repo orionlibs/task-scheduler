@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import org.springframework.core.env.Environment;
 
 /**
  * Properties-based class that holds configuration.
@@ -15,38 +14,18 @@ import org.springframework.core.env.Environment;
 public class OrionConfiguration extends Properties
 {
     /**
-     * The location of the configuration file that has the logging configuration only e.g. log levels.
-     */
-    public static final String LOGGER_CONFIGURATION_FILE = "/io/github/orionlibs/task-scheduler/configuration/orion-logger.prop";
-    /**
      * The location of the configuration file that has configuration for the features of this plugin.
      */
     public static final String FEATURE_CONFIGURATION_FILE = "/io/github/orionlibs/task-scheduler/configuration/orion-feature-configuration.prop";
 
 
-    public static OrionConfiguration loadLoggerConfigurationAndGet(Environment springEnv) throws IOException
-    {
-        OrionConfiguration loggerConfiguration = new OrionConfiguration();
-        InputStream defaultConfigStream = OrionConfiguration.class.getResourceAsStream(LOGGER_CONFIGURATION_FILE);
-        try
-        {
-            loggerConfiguration.loadDefaultAndCustomConfiguration(defaultConfigStream, springEnv);
-            return loggerConfiguration;
-        }
-        catch(IOException e)
-        {
-            throw new IOException("Could not setup logger configuration for Orion Task Scheduler: ", e);
-        }
-    }
-
-
-    public static OrionConfiguration loadFeatureConfiguration(Environment springEnv) throws IOException
+    public static OrionConfiguration loadFeatureConfiguration() throws IOException
     {
         OrionConfiguration featureConfiguration = new OrionConfiguration();
         InputStream defaultConfigStream = OrionConfiguration.class.getResourceAsStream(FEATURE_CONFIGURATION_FILE);
         try
         {
-            featureConfiguration.loadDefaultAndCustomConfiguration(defaultConfigStream, springEnv);
+            featureConfiguration.loadDefaultAndCustomConfiguration(defaultConfigStream, null);
             return featureConfiguration;
         }
         catch(IOException e)
@@ -57,31 +36,36 @@ public class OrionConfiguration extends Properties
 
 
     /**
-     * It takes default configuration and nullable custom configuration from the Spring environment.
+     * It takes default configuration and nullable custom configuration.
      * For each default configuration property, it registers that one if there is no custom
-     * Spring configuration for that property or if springEnv is null. Otherwise it registers the custom one.
+     * configuration for that property or if customConfig is null. Otherwise it registers the custom one.
      * @param defaultConfiguration
-     * @param springEnv which can be null
+     * @param customConfig
      * @throws IOException if an error occurred when reading from the input stream
      */
-    public void loadDefaultAndCustomConfiguration(InputStream defaultConfiguration, Environment springEnv) throws IOException
+    public void loadDefaultAndCustomConfiguration(InputStream defaultConfiguration, Properties customConfig) throws IOException
     {
         Properties tempProperties = new Properties();
         tempProperties.load(defaultConfiguration);
         Map<String, String> allProperties = new HashMap<>();
-        boolean doesSpringEnvExist = springEnv != null;
+        boolean doesCustomConfigExist = customConfig != null;
         for(Map.Entry<Object, Object> prop : tempProperties.entrySet())
         {
+            String key = (String)prop.getKey();
             String value = null;
-            if(doesSpringEnvExist)
+            if(doesCustomConfigExist)
             {
-                value = springEnv.getProperty((String)prop.getKey());
+                value = customConfig.getProperty(key);
                 if(value == null)
                 {
                     value = (String)prop.getValue();
                 }
             }
-            allProperties.put((String)prop.getKey(), value);
+            else
+            {
+                value = (String)prop.getValue();
+            }
+            allProperties.put(key, value);
         }
         putAll(allProperties);
     }
