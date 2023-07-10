@@ -102,6 +102,12 @@ public class SingleExecutionScheduleService
     }
 
 
+    public void shutdown()
+    {
+        executorService.shutdown();
+    }
+
+
     private void cleanUpTasks()
     {
         scheduledTasksToRunnablesMapper.entrySet()
@@ -113,8 +119,8 @@ public class SingleExecutionScheduleService
     }
 
 
-    public void shutdown()
+    public Map<ScheduledFuture<?>, Runnable> getScheduledTasksToRunnablesMapper()
     {
-        executorService.shutdown();
+        return scheduledTasksToRunnablesMapper;
     }
 }
