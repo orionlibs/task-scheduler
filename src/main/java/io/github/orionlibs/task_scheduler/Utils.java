@@ -4,7 +4,7 @@ import java.util.concurrent.ConcurrentMap;
 
 public class Utils
 {
-    public static Runnable buildTaskWrappr(ScheduledTask taskToSchedule, ConcurrentMap<String, ScheduledTask> scheduledTasksToRunnablesMapper)
+    public static Runnable buildTaskWrapper(ScheduledTask taskToSchedule, ConcurrentMap<String, ScheduledTask> scheduledTasksToRunnablesMapper)
     {
         return () -> {
             try
