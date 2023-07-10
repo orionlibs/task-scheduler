@@ -64,17 +64,7 @@ public class SingleExecutionScheduleService
     {
         if(ConfigurationService.getBooleanProp("orionlibs.task-scheduler.enabled"))
         {
-            Runnable taskWrapper = () -> {
-                try
-                {
-                    taskToSchedule.getCommand().run();
-                }
-                finally
-                {
-                    scheduledTasksToRunnablesMapper.remove(taskToSchedule.getTaskID());
-                }
-            };
-            //cleanUpTasks();
+            Runnable taskWrapper = Utils.buildTaskWrappr(taskToSchedule, scheduledTasksToRunnablesMapper);
             ScheduledFuture<?> task = executorService.schedule(taskWrapper, taskToSchedule.getDelay(), taskToSchedule.getUnit());
             taskToSchedule.setTask(task);
             scheduledTasksToRunnablesMapper.put(taskToSchedule.getTaskID(), taskToSchedule);
@@ -93,10 +83,9 @@ public class SingleExecutionScheduleService
         if(ConfigurationService.getBooleanProp("orionlibs.task-scheduler.enabled")
                         && ConfigurationService.getBooleanProp("orionlibs.task-scheduler.cancellation.enabled"))
         {
-            //cleanUpTasks();
-            if(scheduledTasksToRunnablesMapper.get(taskToCancel) != null && !scheduledTasksToRunnablesMapper.get(taskToCancel).getTask().isCancelled())
+            if(getScheduledTaskByID(taskToCancel) != null && !getScheduledTaskByID(taskToCancel).getTask().isCancelled())
             {
-                return scheduledTasksToRunnablesMapper.get(taskToCancel).getTask().cancel(true);
+                return getScheduledTaskByID(taskToCancel).getTask().cancel(true);
             }
             else
             {
@@ -116,19 +105,14 @@ public class SingleExecutionScheduleService
     }
 
 
-    /*private void cleanUpTasks()
-    {
-        scheduledTasksToRunnablesMapper.entrySet()
-                        .stream()
-                        .map(task -> task.getKey())
-                        .filter(task -> task.isDone())
-                        .collect(Collectors.toSet())
-                        .forEach(task -> scheduledTasksToRunnablesMapper.remove(task));
-    }*/
-
-
     public Map<String, ScheduledTask> getScheduledTasksToRunnablesMapper()
     {
         return scheduledTasksToRunnablesMapper;
+    }
+
+
+    public ScheduledTask getScheduledTaskByID(String taskID)
+    {
+        return scheduledTasksToRunnablesMapper.get(taskID);
     }
 }
