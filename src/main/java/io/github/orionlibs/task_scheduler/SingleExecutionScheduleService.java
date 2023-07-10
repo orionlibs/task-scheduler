@@ -3,6 +3,7 @@ package io.github.orionlibs.task_scheduler;
 import io.github.orionlibs.task_scheduler.config.ConfigurationService;
 import io.github.orionlibs.task_scheduler.config.OrionConfiguration;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -60,16 +61,34 @@ public class SingleExecutionScheduleService
      * @throws RejectedExecutionException
      * @throws NullPointerException
      */
-    public ScheduledFuture<?> schedule(ScheduledTask taskToSchedule) throws FeatureIsDisabledException
+    public void schedule(ScheduledTask taskToSchedule) throws FeatureIsDisabledException
     {
         if(ConfigurationService.getBooleanProp("orionlibs.task-scheduler.enabled"))
         {
-            Runnable taskWrapper = Utils.buildTaskWrappr(taskToSchedule, scheduledTasksToRunnablesMapper);
+            Runnable taskWrapper = Utils.buildTaskWrapper(taskToSchedule, scheduledTasksToRunnablesMapper);
             ScheduledFuture<?> task = executorService.schedule(taskWrapper, taskToSchedule.getDelay(), taskToSchedule.getUnit());
             taskToSchedule.setTask(task);
             scheduledTasksToRunnablesMapper.put(taskToSchedule.getTaskID(), taskToSchedule);
             log.info("schedule started");
-            return task;
+        }
+        else
+        {
+            throw new FeatureIsDisabledException();
+        }
+    }
+
+
+    public void schedule(List<ScheduledTask> tasksToSchedule) throws FeatureIsDisabledException
+    {
+        if(ConfigurationService.getBooleanProp("orionlibs.task-scheduler.enabled"))
+        {
+            if(tasksToSchedule != null)
+            {
+                for(ScheduledTask task : tasksToSchedule)
+                {
+                    schedule(task);
+                }
+            }
         }
         else
         {
