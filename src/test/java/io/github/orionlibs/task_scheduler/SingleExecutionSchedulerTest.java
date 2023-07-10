@@ -45,11 +45,15 @@ public class SingleExecutionSchedulerTest
     @Test
     void test_schedule() throws Exception
     {
-        singleExecutionScheduler.schedule(new RunnableExample("Runnable is running"), 100, TimeUnit.MILLISECONDS);
+        singleExecutionScheduler.schedule(ScheduledTask.builder()
+                        .command(new RunnableExample("Runnable is running"))
+                        .delay(100)
+                        .unit(TimeUnit.MILLISECONDS)
+                        .build());
         singleExecutionScheduler.shutdown();
         assertTrue(listLogHandler.getLogRecords().stream()
                         .anyMatch(record -> record.getMessage().contains("schedule started")));
-        Thread.sleep(150);
+        Thread.sleep(250);
         assertTrue(listLogHandler.getLogRecords().stream()
                         .anyMatch(record -> record.getMessage().contains("Runnable is running")));
     }
@@ -60,7 +64,11 @@ public class SingleExecutionSchedulerTest
     {
         ConfigurationService.updateProp("orionlibs.task-scheduler.enabled", "false");
         Exception exception = assertThrows(FeatureIsDisabledException.class, () -> {
-            singleExecutionScheduler.schedule(new RunnableExample("Runnable is running"), 100, TimeUnit.MILLISECONDS);
+            singleExecutionScheduler.schedule(ScheduledTask.builder()
+                            .command(new RunnableExample("Runnable is running"))
+                            .delay(100)
+                            .unit(TimeUnit.MILLISECONDS)
+                            .build());
         });
         ConfigurationService.updateProp("orionlibs.task-scheduler.enabled", "true");
     }
@@ -69,13 +77,25 @@ public class SingleExecutionSchedulerTest
     @Test
     void test_schedule_sequentialTasks() throws Exception
     {
-        singleExecutionScheduler.schedule(new RunnableExample("Runnable1 is running"), 300, TimeUnit.MILLISECONDS);
-        singleExecutionScheduler.schedule(new RunnableExample("Runnable2 is running"), 200, TimeUnit.MILLISECONDS);
-        singleExecutionScheduler.schedule(new RunnableExample("Runnable3 is running"), 100, TimeUnit.MILLISECONDS);
+        singleExecutionScheduler.schedule(ScheduledTask.builder()
+                        .command(new RunnableExample("Runnable1 is running"))
+                        .delay(600)
+                        .unit(TimeUnit.MILLISECONDS)
+                        .build());
+        singleExecutionScheduler.schedule(ScheduledTask.builder()
+                        .command(new RunnableExample("Runnable2 is running"))
+                        .delay(400)
+                        .unit(TimeUnit.MILLISECONDS)
+                        .build());
+        singleExecutionScheduler.schedule(ScheduledTask.builder()
+                        .command(new RunnableExample("Runnable3 is running"))
+                        .delay(200)
+                        .unit(TimeUnit.MILLISECONDS)
+                        .build());
         singleExecutionScheduler.shutdown();
         assertTrue(listLogHandler.getLogRecords().stream()
                         .anyMatch(record -> record.getMessage().contains("schedule started")));
-        Thread.sleep(400);
+        Thread.sleep(700);
         assertTrue(listLogHandler.getLogRecords().get(3).getMessage().equals("Runnable3 is running"));
         assertTrue(listLogHandler.getLogRecords().get(4).getMessage().equals("Runnable2 is running"));
         assertTrue(listLogHandler.getLogRecords().get(5).getMessage().equals("Runnable1 is running"));
@@ -85,9 +105,21 @@ public class SingleExecutionSchedulerTest
     @Test
     void test_cancelTask() throws Exception
     {
-        ScheduledFuture<?> task1 = singleExecutionScheduler.schedule(new RunnableExample("Runnable1 is running"), 200, TimeUnit.MILLISECONDS);
-        ScheduledFuture<?> task2 = singleExecutionScheduler.schedule(new RunnableExample("Runnable2 is running"), 400, TimeUnit.MILLISECONDS);
-        ScheduledFuture<?> task3 = singleExecutionScheduler.schedule(new RunnableExample("Runnable3 is running"), 600, TimeUnit.MILLISECONDS);
+        ScheduledFuture<?> task1 = singleExecutionScheduler.schedule(ScheduledTask.builder()
+                        .command(new RunnableExample("Runnable1 is running"))
+                        .delay(200)
+                        .unit(TimeUnit.MILLISECONDS)
+                        .build());
+        ScheduledFuture<?> task2 = singleExecutionScheduler.schedule(ScheduledTask.builder()
+                        .command(new RunnableExample("Runnable2 is running"))
+                        .delay(400)
+                        .unit(TimeUnit.MILLISECONDS)
+                        .build());
+        ScheduledFuture<?> task3 = singleExecutionScheduler.schedule(ScheduledTask.builder()
+                        .command(new RunnableExample("Runnable3 is running"))
+                        .delay(600)
+                        .unit(TimeUnit.MILLISECONDS)
+                        .build());
         singleExecutionScheduler.shutdown();
         singleExecutionScheduler.cancelTask(task3);
         Thread.sleep(700);
@@ -101,9 +133,21 @@ public class SingleExecutionSchedulerTest
     void test_cancelTask_disabled() throws Exception
     {
         ConfigurationService.updateProp("orionlibs.task-scheduler.cancellation.enabled", "false");
-        ScheduledFuture<?> task1 = singleExecutionScheduler.schedule(new RunnableExample("Runnable1 is running"), 200, TimeUnit.MILLISECONDS);
-        ScheduledFuture<?> task2 = singleExecutionScheduler.schedule(new RunnableExample("Runnable2 is running"), 400, TimeUnit.MILLISECONDS);
-        ScheduledFuture<?> task3 = singleExecutionScheduler.schedule(new RunnableExample("Runnable3 is running"), 600, TimeUnit.MILLISECONDS);
+        ScheduledFuture<?> task1 = singleExecutionScheduler.schedule(ScheduledTask.builder()
+                        .command(new RunnableExample("Runnable1 is running"))
+                        .delay(200)
+                        .unit(TimeUnit.MILLISECONDS)
+                        .build());
+        ScheduledFuture<?> task2 = singleExecutionScheduler.schedule(ScheduledTask.builder()
+                        .command(new RunnableExample("Runnable2 is running"))
+                        .delay(400)
+                        .unit(TimeUnit.MILLISECONDS)
+                        .build());
+        ScheduledFuture<?> task3 = singleExecutionScheduler.schedule(ScheduledTask.builder()
+                        .command(new RunnableExample("Runnable3 is running"))
+                        .delay(600)
+                        .unit(TimeUnit.MILLISECONDS)
+                        .build());
         singleExecutionScheduler.shutdown();
         Exception exception = assertThrows(FeatureIsDisabledException.class, () -> {
             singleExecutionScheduler.cancelTask(task3);
@@ -115,9 +159,21 @@ public class SingleExecutionSchedulerTest
     @Test
     void test_cancelTask_nonExistentTask() throws Exception
     {
-        ScheduledFuture<?> task1 = singleExecutionScheduler.schedule(new RunnableExample("Runnable1 is running"), 200, TimeUnit.MILLISECONDS);
-        ScheduledFuture<?> task2 = singleExecutionScheduler.schedule(new RunnableExample("Runnable2 is running"), 400, TimeUnit.MILLISECONDS);
-        ScheduledFuture<?> task3 = singleExecutionScheduler.schedule(new RunnableExample("Runnable3 is running"), 600, TimeUnit.MILLISECONDS);
+        ScheduledFuture<?> task1 = singleExecutionScheduler.schedule(ScheduledTask.builder()
+                        .command(new RunnableExample("Runnable1 is running"))
+                        .delay(200)
+                        .unit(TimeUnit.MILLISECONDS)
+                        .build());
+        ScheduledFuture<?> task2 = singleExecutionScheduler.schedule(ScheduledTask.builder()
+                        .command(new RunnableExample("Runnable2 is running"))
+                        .delay(400)
+                        .unit(TimeUnit.MILLISECONDS)
+                        .build());
+        ScheduledFuture<?> task3 = singleExecutionScheduler.schedule(ScheduledTask.builder()
+                        .command(new RunnableExample("Runnable3 is running"))
+                        .delay(600)
+                        .unit(TimeUnit.MILLISECONDS)
+                        .build());
         singleExecutionScheduler.shutdown();
         singleExecutionScheduler.cancelTask(task3);
         Thread.sleep(500);
@@ -133,13 +189,25 @@ public class SingleExecutionSchedulerTest
         RunnableExample command1 = new RunnableExample("Runnable1 is running");
         RunnableExample command2 = new RunnableExample("Runnable2 is running");
         RunnableExample command3 = new RunnableExample("Runnable3 is running");
-        ScheduledFuture<?> task1 = singleExecutionScheduler.schedule(command1, 200, TimeUnit.MILLISECONDS);
-        ScheduledFuture<?> task2 = singleExecutionScheduler.schedule(command2, 400, TimeUnit.MILLISECONDS);
-        ScheduledFuture<?> task3 = singleExecutionScheduler.schedule(command3, 600, TimeUnit.MILLISECONDS);
-        Map<ScheduledFuture<?>, Runnable> scheduledTasks = singleExecutionScheduler.getScheduledTasksToRunnablesMapper();
+        ScheduledFuture<?> task1 = singleExecutionScheduler.schedule(ScheduledTask.builder()
+                        .command(command1)
+                        .delay(200)
+                        .unit(TimeUnit.MILLISECONDS)
+                        .build());
+        ScheduledFuture<?> task2 = singleExecutionScheduler.schedule(ScheduledTask.builder()
+                        .command(command2)
+                        .delay(400)
+                        .unit(TimeUnit.MILLISECONDS)
+                        .build());
+        ScheduledFuture<?> task3 = singleExecutionScheduler.schedule(ScheduledTask.builder()
+                        .command(command3)
+                        .delay(600)
+                        .unit(TimeUnit.MILLISECONDS)
+                        .build());
+        Map<ScheduledFuture<?>, ScheduledTask> scheduledTasks = singleExecutionScheduler.getScheduledTasksToRunnablesMapper();
         singleExecutionScheduler.shutdown();
-        assertEquals(command1, scheduledTasks.get(task1));
-        assertEquals(command2, scheduledTasks.get(task2));
-        assertEquals(command3, scheduledTasks.get(task3));
+        assertEquals(command1, scheduledTasks.get(task1).getCommand());
+        assertEquals(command2, scheduledTasks.get(task2).getCommand());
+        assertEquals(command3, scheduledTasks.get(task3).getCommand());
     }
 }
