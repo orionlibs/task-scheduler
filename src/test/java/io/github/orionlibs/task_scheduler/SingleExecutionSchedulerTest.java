@@ -94,4 +94,34 @@ public class SingleExecutionSchedulerTest
         assertTrue(listLogHandler.getLogRecords().get(4).getMessage().equals("Runnable2 is running"));
         assertEquals(5, listLogHandler.getLogRecords().size());
     }
+
+
+    @Test
+    void test_cancelTask_disabled() throws Exception
+    {
+        ConfigurationService.updateProp("orionlibs.task-scheduler.cancellation.enabled", "false");
+        ScheduledFuture<?> task1 = singleExecutionScheduler.schedule(new RunnableExample("Runnable1 is running"), 200, TimeUnit.MILLISECONDS);
+        ScheduledFuture<?> task2 = singleExecutionScheduler.schedule(new RunnableExample("Runnable2 is running"), 400, TimeUnit.MILLISECONDS);
+        ScheduledFuture<?> task3 = singleExecutionScheduler.schedule(new RunnableExample("Runnable3 is running"), 600, TimeUnit.MILLISECONDS);
+        singleExecutionScheduler.shutdown();
+        Exception exception = assertThrows(FeatureIsDisabledException.class, () -> {
+            singleExecutionScheduler.cancelTask(task3);
+        });
+        ConfigurationService.updateProp("orionlibs.task-scheduler.cancellation.enabled", "true");
+    }
+
+
+    @Test
+    void test_cancelTask_nonExistentTask() throws Exception
+    {
+        ScheduledFuture<?> task1 = singleExecutionScheduler.schedule(new RunnableExample("Runnable1 is running"), 200, TimeUnit.MILLISECONDS);
+        ScheduledFuture<?> task2 = singleExecutionScheduler.schedule(new RunnableExample("Runnable2 is running"), 400, TimeUnit.MILLISECONDS);
+        ScheduledFuture<?> task3 = singleExecutionScheduler.schedule(new RunnableExample("Runnable3 is running"), 600, TimeUnit.MILLISECONDS);
+        singleExecutionScheduler.shutdown();
+        singleExecutionScheduler.cancelTask(task3);
+        Thread.sleep(400);
+        Exception exception = assertThrows(TaskDoesNotExistException.class, () -> {
+            singleExecutionScheduler.cancelTask(task3);
+        });
+    }
 }
