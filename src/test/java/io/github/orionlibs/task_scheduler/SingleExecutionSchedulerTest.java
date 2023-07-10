@@ -8,6 +8,7 @@ import io.github.orionlibs.task_scheduler.config.ConfigurationService;
 import io.github.orionlibs.task_scheduler.log.ListLogHandler;
 import io.github.orionlibs.task_scheduler.utils.RunnableExample;
 import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
@@ -119,9 +120,26 @@ public class SingleExecutionSchedulerTest
         ScheduledFuture<?> task3 = singleExecutionScheduler.schedule(new RunnableExample("Runnable3 is running"), 600, TimeUnit.MILLISECONDS);
         singleExecutionScheduler.shutdown();
         singleExecutionScheduler.cancelTask(task3);
-        Thread.sleep(400);
+        Thread.sleep(500);
         Exception exception = assertThrows(TaskDoesNotExistException.class, () -> {
             singleExecutionScheduler.cancelTask(task3);
         });
+    }
+
+
+    @Test
+    void test_getScheduledTasksToRunnablesMapper() throws Exception
+    {
+        RunnableExample command1 = new RunnableExample("Runnable1 is running");
+        RunnableExample command2 = new RunnableExample("Runnable2 is running");
+        RunnableExample command3 = new RunnableExample("Runnable3 is running");
+        ScheduledFuture<?> task1 = singleExecutionScheduler.schedule(command1, 200, TimeUnit.MILLISECONDS);
+        ScheduledFuture<?> task2 = singleExecutionScheduler.schedule(command2, 400, TimeUnit.MILLISECONDS);
+        ScheduledFuture<?> task3 = singleExecutionScheduler.schedule(command3, 600, TimeUnit.MILLISECONDS);
+        Map<ScheduledFuture<?>, Runnable> scheduledTasks = singleExecutionScheduler.getScheduledTasksToRunnablesMapper();
+        singleExecutionScheduler.shutdown();
+        assertEquals(command1, scheduledTasks.get(task1));
+        assertEquals(command2, scheduledTasks.get(task2));
+        assertEquals(command3, scheduledTasks.get(task3));
     }
 }
