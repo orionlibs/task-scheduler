@@ -1,1 +1,2 @@
 orionlibs.task-scheduler.enabled=true
+orionlibs.task-scheduler.cancellation.enabled=true

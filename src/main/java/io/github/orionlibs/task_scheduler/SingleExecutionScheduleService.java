@@ -71,7 +71,8 @@ public class SingleExecutionScheduleService
 
     public boolean cancelTask(ScheduledFuture<?> taskToCancel) throws FeatureIsDisabledException, TaskDoesNotExistException
     {
-        if(ConfigurationService.getBooleanProp("orionlibs.task-scheduler.enabled"))
+        if(ConfigurationService.getBooleanProp("orionlibs.task-scheduler.enabled")
+                        && ConfigurationService.getBooleanProp("orionlibs.task-scheduler.cancellation.enabled"))
         {
             if(scheduledTasksToRunnablesMapper.get(taskToCancel) != null && !taskToCancel.isCancelled())
             {
