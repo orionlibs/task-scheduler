@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -52,6 +53,16 @@ public class SingleExecutionScheduleService
     }
 
 
+    /**
+     *
+     * @param command
+     * @param delay
+     * @param unit
+     * @return
+     * @throws FeatureIsDisabledException
+     * @throws RejectedExecutionException
+     * @throws NullPointerException
+     */
     public ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) throws FeatureIsDisabledException
     {
         if(ConfigurationService.getBooleanProp("orionlibs.task-scheduler.enabled"))
@@ -74,6 +85,7 @@ public class SingleExecutionScheduleService
         if(ConfigurationService.getBooleanProp("orionlibs.task-scheduler.enabled")
                         && ConfigurationService.getBooleanProp("orionlibs.task-scheduler.cancellation.enabled"))
         {
+            cleanUpTasks();
             if(scheduledTasksToRunnablesMapper.get(taskToCancel) != null && !taskToCancel.isCancelled())
             {
                 return taskToCancel.cancel(true);
