@@ -54,9 +54,7 @@ public class SingleExecutionScheduleService
 
     /**
      *
-     * @param command
-     * @param delay
-     * @param unit
+     * @param taskToSchedule
      * @return
      * @throws FeatureIsDisabledException
      * @throws RejectedExecutionException
