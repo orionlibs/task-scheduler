@@ -15,6 +15,7 @@ import lombok.Setter;
 @Setter
 public class ScheduledTask
 {
+    private String taskID;
     private Runnable command;
     private long delay;
     private TimeUnit unit;

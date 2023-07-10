@@ -3,22 +3,22 @@ package io.github.orionlibs.task_scheduler;
 import io.github.orionlibs.task_scheduler.config.ConfigurationService;
 import io.github.orionlibs.task_scheduler.config.OrionConfiguration;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.logging.Handler;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 public class SingleExecutionScheduleService
 {
     private final static Logger log;
     private OrionConfiguration featureConfiguration;
     private ScheduledExecutorService executorService;
-    private Map<ScheduledFuture<?>, ScheduledTask> scheduledTasksToRunnablesMapper;
+    private ConcurrentMap<String, ScheduledTask> scheduledTasksToRunnablesMapper;
 
     static
     {
@@ -29,7 +29,7 @@ public class SingleExecutionScheduleService
     {
         setupConfiguration();
         this.executorService = Executors.newSingleThreadScheduledExecutor();
-        this.scheduledTasksToRunnablesMapper = new HashMap<>();
+        this.scheduledTasksToRunnablesMapper = new ConcurrentHashMap<>();
     }
 
 
@@ -64,14 +64,20 @@ public class SingleExecutionScheduleService
     {
         if(ConfigurationService.getBooleanProp("orionlibs.task-scheduler.enabled"))
         {
-            cleanUpTasks();
-            ScheduledFuture<?> task = executorService.schedule(taskToSchedule.getCommand(), taskToSchedule.getDelay(), taskToSchedule.getUnit());
-            scheduledTasksToRunnablesMapper.put(task, ScheduledTask.builder()
-                            .command(taskToSchedule.getCommand())
-                            .delay(taskToSchedule.getDelay())
-                            .unit(taskToSchedule.getUnit())
-                            .task(task)
-                            .build());
+            Runnable taskWrapper = () -> {
+                try
+                {
+                    taskToSchedule.getCommand().run();
+                }
+                finally
+                {
+                    scheduledTasksToRunnablesMapper.remove(taskToSchedule.getTaskID());
+                }
+            };
+            //cleanUpTasks();
+            ScheduledFuture<?> task = executorService.schedule(taskWrapper, taskToSchedule.getDelay(), taskToSchedule.getUnit());
+            taskToSchedule.setTask(task);
+            scheduledTasksToRunnablesMapper.put(taskToSchedule.getTaskID(), taskToSchedule);
             log.info("schedule started");
             return task;
         }
@@ -82,15 +88,15 @@ public class SingleExecutionScheduleService
     }
 
 
-    public boolean cancelTask(ScheduledFuture<?> taskToCancel) throws FeatureIsDisabledException, TaskDoesNotExistException
+    public boolean cancelTask(String taskToCancel) throws FeatureIsDisabledException, TaskDoesNotExistException
     {
         if(ConfigurationService.getBooleanProp("orionlibs.task-scheduler.enabled")
                         && ConfigurationService.getBooleanProp("orionlibs.task-scheduler.cancellation.enabled"))
         {
-            cleanUpTasks();
-            if(scheduledTasksToRunnablesMapper.get(taskToCancel) != null && !taskToCancel.isCancelled())
+            //cleanUpTasks();
+            if(scheduledTasksToRunnablesMapper.get(taskToCancel) != null && !scheduledTasksToRunnablesMapper.get(taskToCancel).getTask().isCancelled())
             {
-                return taskToCancel.cancel(true);
+                return scheduledTasksToRunnablesMapper.get(taskToCancel).getTask().cancel(true);
             }
             else
             {
@@ -110,7 +116,7 @@ public class SingleExecutionScheduleService
     }
 
 
-    private void cleanUpTasks()
+    /*private void cleanUpTasks()
     {
         scheduledTasksToRunnablesMapper.entrySet()
                         .stream()
@@ -118,10 +124,10 @@ public class SingleExecutionScheduleService
                         .filter(task -> task.isDone())
                         .collect(Collectors.toSet())
                         .forEach(task -> scheduledTasksToRunnablesMapper.remove(task));
-    }
+    }*/
 
 
-    public Map<ScheduledFuture<?>, ScheduledTask> getScheduledTasksToRunnablesMapper()
+    public Map<String, ScheduledTask> getScheduledTasksToRunnablesMapper()
     {
         return scheduledTasksToRunnablesMapper;
     }
