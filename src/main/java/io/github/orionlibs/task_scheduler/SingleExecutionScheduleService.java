@@ -9,7 +9,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Handler;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -19,7 +18,7 @@ public class SingleExecutionScheduleService
     private final static Logger log;
     private OrionConfiguration featureConfiguration;
     private ScheduledExecutorService executorService;
-    private Map<ScheduledFuture<?>, Runnable> scheduledTasksToRunnablesMapper;
+    private Map<ScheduledFuture<?>, ScheduledTask> scheduledTasksToRunnablesMapper;
 
     static
     {
@@ -55,21 +54,24 @@ public class SingleExecutionScheduleService
 
     /**
      *
-     * @param command
-     * @param delay
-     * @param unit
+     * @param taskToSchedule
      * @return
      * @throws FeatureIsDisabledException
      * @throws RejectedExecutionException
      * @throws NullPointerException
      */
-    public ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) throws FeatureIsDisabledException
+    public ScheduledFuture<?> schedule(ScheduledTask taskToSchedule) throws FeatureIsDisabledException
     {
         if(ConfigurationService.getBooleanProp("orionlibs.task-scheduler.enabled"))
         {
             cleanUpTasks();
-            ScheduledFuture<?> task = executorService.schedule(command, delay, unit);
-            scheduledTasksToRunnablesMapper.put(task, command);
+            ScheduledFuture<?> task = executorService.schedule(taskToSchedule.getCommand(), taskToSchedule.getDelay(), taskToSchedule.getUnit());
+            scheduledTasksToRunnablesMapper.put(task, ScheduledTask.builder()
+                            .command(taskToSchedule.getCommand())
+                            .delay(taskToSchedule.getDelay())
+                            .unit(taskToSchedule.getUnit())
+                            .task(task)
+                            .build());
             log.info("schedule started");
             return task;
         }
@@ -119,7 +121,7 @@ public class SingleExecutionScheduleService
     }
 
 
-    public Map<ScheduledFuture<?>, Runnable> getScheduledTasksToRunnablesMapper()
+    public Map<ScheduledFuture<?>, ScheduledTask> getScheduledTasksToRunnablesMapper()
     {
         return scheduledTasksToRunnablesMapper;
     }
