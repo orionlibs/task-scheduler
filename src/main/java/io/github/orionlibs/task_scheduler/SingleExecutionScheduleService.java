@@ -3,7 +3,7 @@ package io.github.orionlibs.task_scheduler;
 import io.github.orionlibs.task_scheduler.config.ConfigurationService;
 import io.github.orionlibs.task_scheduler.config.OrionConfiguration;
 import java.io.IOException;
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -83,7 +83,7 @@ public class SingleExecutionScheduleService
     }
 
 
-    public void schedule(List<ScheduledTask> tasksToSchedule) throws FeatureIsDisabledException
+    public void schedule(Collection<ScheduledTask> tasksToSchedule) throws FeatureIsDisabledException
     {
         if(config.getBooleanProp("orionlibs.task-scheduler.enabled"))
         {
