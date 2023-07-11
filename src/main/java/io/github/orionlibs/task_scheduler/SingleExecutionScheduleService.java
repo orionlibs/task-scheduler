@@ -14,6 +14,9 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.logging.Handler;
 import java.util.logging.Logger;
 
+/**
+ * Service that schedules tasks to be executed in the future only once.
+ */
 public class SingleExecutionScheduleService
 {
     private Logger log;
@@ -51,17 +54,20 @@ public class SingleExecutionScheduleService
 
 
     /**
-     *
+     * Schedules a task to execute in the future only once.
+     * The given ScheduledTask object will have a value for the task field which
+     * will be the actual ScheduledFuture that executes.
      * @param taskToSchedule
-     * @return
-     * @throws FeatureIsDisabledException
-     * @throws RejectedExecutionException
+     * @throws FeatureIsDisabledException if the scheduler is disabled.
+     * @throws RejectedExecutionException if the scheduler rejects the task.
      * @throws NullPointerException
+     * @throws InvalidArgumentException if the taskToSchedule argument has invalid values.
      */
-    public void schedule(ScheduledTask taskToSchedule) throws FeatureIsDisabledException, RejectedExecutionException
+    public void schedule(ScheduledTask taskToSchedule) throws FeatureIsDisabledException, RejectedExecutionException, InvalidArgumentException
     {
         if(config.getBooleanProp("orionlibs.task-scheduler.enabled"))
         {
+            taskToSchedule.validate();
             Runnable taskWrapper = TaskWrapper.buildTaskWrapper(taskToSchedule, scheduledTasksToRunnablesMapper, this);
             ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
             try
@@ -83,7 +89,15 @@ public class SingleExecutionScheduleService
     }
 
 
-    public void schedule(Collection<ScheduledTask> tasksToSchedule) throws FeatureIsDisabledException
+    /**
+     * Schedules multiple tasks to execute in the future only once.
+     * @param tasksToSchedule
+     * @throws FeatureIsDisabledException if the scheduler is disabled.
+     * @throws RejectedExecutionException if the scheduler rejects the task.
+     * @throws NullPointerException
+     * @throws InvalidArgumentException if the taskToSchedule argument has invalid values.
+     */
+    public void schedule(Collection<ScheduledTask> tasksToSchedule) throws FeatureIsDisabledException, RejectedExecutionException, InvalidArgumentException
     {
         if(config.getBooleanProp("orionlibs.task-scheduler.enabled"))
         {
@@ -102,6 +116,13 @@ public class SingleExecutionScheduleService
     }
 
 
+    /**
+     * It cancels the given taskToCancel before it executes.
+     * @param taskToCancel
+     * @return
+     * @throws FeatureIsDisabledException if the scheduler or the cancellation feature is disabled.
+     * @throws TaskDoesNotExistException if the taskToCancel doe snot exist in the scheduler.
+     */
     public boolean cancel(String taskToCancel) throws FeatureIsDisabledException, TaskDoesNotExistException
     {
         if(config.getBooleanProp("orionlibs.task-scheduler.enabled")
@@ -133,18 +154,31 @@ public class SingleExecutionScheduleService
     }
 
 
+    /**
+     * It returns a mapping of taskIDs to ScheduledTask objects
+     * @return
+     */
     public Map<String, ScheduledTask> getScheduledTasksToRunnablesMapper()
     {
         return scheduledTasksToRunnablesMapper;
     }
 
 
+    /**
+     * It returns the ScheduledTask that corresponds to the provided taskID.
+     * @param taskID
+     * @return
+     */
     public ScheduledTask getScheduledTaskByID(String taskID)
     {
         return scheduledTasksToRunnablesMapper.get(taskID);
     }
 
 
+    /**
+     * It returns the config of this instance of the service.
+     * @return
+     */
     public ConfigurationService getConfig()
     {
         return config;

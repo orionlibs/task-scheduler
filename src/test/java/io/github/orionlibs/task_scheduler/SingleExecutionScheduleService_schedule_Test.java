@@ -76,6 +76,86 @@ public class SingleExecutionScheduleService_schedule_Test
 
 
     @Test
+    void test_schedule_now() throws Exception
+    {
+        runnableExample1.addLogMessage("Runnable is running");
+        singleExecutionScheduler.schedule(ScheduledTask.builder()
+                        .taskID("runnable")
+                        .taskToSchedule(runnableExample1)
+                        .delay(0)
+                        .unit(TimeUnit.MILLISECONDS)
+                        .build());
+        Thread.sleep(150);
+        assertTrue(listLogHandler.getLogRecords().stream()
+                        .anyMatch(record -> record.getMessage().contains("schedule started")));
+        assertTrue(listLogHandler.getLogRecords().stream()
+                        .anyMatch(record -> record.getMessage().contains("Runnable is running")));
+    }
+
+
+    @Test
+    void test_schedule_past() throws Exception
+    {
+        runnableExample1.addLogMessage("Runnable is running");
+        singleExecutionScheduler.schedule(ScheduledTask.builder()
+                        .taskID("runnable")
+                        .taskToSchedule(runnableExample1)
+                        .delay(-1000)
+                        .unit(TimeUnit.MILLISECONDS)
+                        .build());
+        Thread.sleep(150);
+        assertTrue(listLogHandler.getLogRecords().stream()
+                        .anyMatch(record -> record.getMessage().contains("schedule started")));
+        assertTrue(listLogHandler.getLogRecords().stream()
+                        .anyMatch(record -> record.getMessage().contains("Runnable is running")));
+    }
+
+
+    @Test
+    void test_schedule_missingTaskID() throws Exception
+    {
+        runnableExample1.addLogMessage("Runnable is running");
+        Exception exception = assertThrows(InvalidArgumentException.class, () -> {
+            singleExecutionScheduler.schedule(ScheduledTask.builder()
+                            .taskID(null)
+                            .taskToSchedule(runnableExample1)
+                            .delay(50)
+                            .unit(TimeUnit.MILLISECONDS)
+                            .build());
+        });
+    }
+
+
+    @Test
+    void test_schedule_missingTaskToSchedule() throws Exception
+    {
+        Exception exception = assertThrows(InvalidArgumentException.class, () -> {
+            singleExecutionScheduler.schedule(ScheduledTask.builder()
+                            .taskID("task1")
+                            .taskToSchedule(null)
+                            .delay(50)
+                            .unit(TimeUnit.MILLISECONDS)
+                            .build());
+        });
+    }
+
+
+    @Test
+    void test_schedule_missingUnit() throws Exception
+    {
+        runnableExample1.addLogMessage("Runnable is running");
+        Exception exception = assertThrows(InvalidArgumentException.class, () -> {
+            singleExecutionScheduler.schedule(ScheduledTask.builder()
+                            .taskID("runnable")
+                            .taskToSchedule(runnableExample1)
+                            .delay(-1000)
+                            .unit(null)
+                            .build());
+        });
+    }
+
+
+    @Test
     void test_schedule_disabled()
     {
         config.updateProp("orionlibs.task-scheduler.enabled", "false");
@@ -215,6 +295,24 @@ public class SingleExecutionScheduleService_schedule_Test
                         .anyMatch(record -> record.getMessage().contains("Runnable is running")));
         assertTrue(listLogHandler.getLogRecords().stream()
                         .anyMatch(record -> record.getMessage().contains("callback has been called")));
+    }
+
+
+    @Test
+    void test_schedule_withNegativeRetry() throws Exception
+    {
+        runnableExample1.addLogMessageAndDelay("Runnable is running", 100L);
+        singleExecutionScheduler.schedule(ScheduledTask.builder()
+                        .taskID("runnable")
+                        .taskToSchedule(runnableExample1)
+                        .delay(500)
+                        .unit(TimeUnit.MILLISECONDS)
+                        .numberOfRetriesOnError(-5)
+                        .build());
+        Thread.sleep(1000);
+        assertEquals(2, listLogHandler.getLogRecords().size());
+        assertEquals("schedule started", listLogHandler.getLogRecords().get(0).getMessage());
+        assertEquals("Runnable is running", listLogHandler.getLogRecords().get(1).getMessage());
     }
 
 
