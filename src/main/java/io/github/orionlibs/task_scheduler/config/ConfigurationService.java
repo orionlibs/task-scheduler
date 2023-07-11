@@ -5,14 +5,14 @@ package io.github.orionlibs.task_scheduler.config;
  */
 public class ConfigurationService
 {
-    private static OrionConfiguration configurationRegistry;
+    private OrionConfiguration configurationRegistry;
 
 
     /**
      * stores a config object
      * @param configuration
      */
-    public static void registerConfiguration(OrionConfiguration configuration)
+    public void registerConfiguration(OrionConfiguration configuration)
     {
         configurationRegistry = configuration;
     }
@@ -23,7 +23,7 @@ public class ConfigurationService
      * @param key
      * @return
      */
-    public static String getProp(String key)
+    public String getProp(String key)
     {
         return configurationRegistry.getProperty(key);
     }
@@ -34,7 +34,7 @@ public class ConfigurationService
      * @param key
      * @return
      */
-    public static Boolean getBooleanProp(String key)
+    public Boolean getBooleanProp(String key)
     {
         return Boolean.parseBoolean(configurationRegistry.getProperty(key));
     }
@@ -45,7 +45,7 @@ public class ConfigurationService
      * @param key
      * @param value
      */
-    public static void updateProp(String key, String value)
+    public void updateProp(String key, String value)
     {
         configurationRegistry.updateProp(key, value);
     }
