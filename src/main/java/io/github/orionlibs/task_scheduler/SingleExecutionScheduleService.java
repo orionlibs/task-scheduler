@@ -16,20 +16,17 @@ import java.util.logging.Logger;
 
 public class SingleExecutionScheduleService
 {
-    private final static Logger log;
+    private Logger log;
     private OrionConfiguration featureConfiguration;
-    private ScheduledExecutorService executorService;
     private ConcurrentMap<String, ScheduledTask> scheduledTasksToRunnablesMapper;
+    private ConfigurationService config;
 
-    static
-    {
-        log = Logger.getLogger(SingleExecutionScheduleService.class.getName());
-    }
 
     public SingleExecutionScheduleService() throws IOException
     {
+        log = Logger.getLogger(SingleExecutionScheduleService.class.getName());
+        this.config = new ConfigurationService();
         setupConfiguration();
-        this.executorService = Executors.newSingleThreadScheduledExecutor();
         this.scheduledTasksToRunnablesMapper = new ConcurrentHashMap<>();
     }
 
@@ -37,17 +34,17 @@ public class SingleExecutionScheduleService
     private void setupConfiguration() throws IOException
     {
         this.featureConfiguration = OrionConfiguration.loadFeatureConfiguration();
-        ConfigurationService.registerConfiguration(featureConfiguration);
+        config.registerConfiguration(featureConfiguration);
     }
 
 
-    static void addLogHandler(Handler handler)
+    void addLogHandler(Handler handler)
     {
         log.addHandler(handler);
     }
 
 
-    static void removeLogHandler(Handler handler)
+    void removeLogHandler(Handler handler)
     {
         log.removeHandler(handler);
     }
@@ -61,15 +58,17 @@ public class SingleExecutionScheduleService
      * @throws RejectedExecutionException
      * @throws NullPointerException
      */
-    public void schedule(ScheduledTask taskToSchedule) throws FeatureIsDisabledException
+    public void schedule(ScheduledTask taskToSchedule) throws FeatureIsDisabledException, RejectedExecutionException
     {
-        if(ConfigurationService.getBooleanProp("orionlibs.task-scheduler.enabled"))
+        if(config.getBooleanProp("orionlibs.task-scheduler.enabled"))
         {
-            Runnable taskWrapper = Utils.buildTaskWrapper(taskToSchedule, scheduledTasksToRunnablesMapper);
+            Runnable taskWrapper = TaskWrapper.buildTaskWrapper(taskToSchedule, scheduledTasksToRunnablesMapper, this);
+            ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
             ScheduledFuture<?> task = executorService.schedule(taskWrapper, taskToSchedule.getDelay(), taskToSchedule.getUnit());
             taskToSchedule.setTask(task);
             scheduledTasksToRunnablesMapper.put(taskToSchedule.getTaskID(), taskToSchedule);
             log.info("schedule started");
+            executorService.shutdown();
         }
         else
         {
@@ -80,7 +79,7 @@ public class SingleExecutionScheduleService
 
     public void schedule(List<ScheduledTask> tasksToSchedule) throws FeatureIsDisabledException
     {
-        if(ConfigurationService.getBooleanProp("orionlibs.task-scheduler.enabled"))
+        if(config.getBooleanProp("orionlibs.task-scheduler.enabled"))
         {
             if(tasksToSchedule != null)
             {
@@ -99,13 +98,17 @@ public class SingleExecutionScheduleService
 
     public boolean cancel(String taskToCancel) throws FeatureIsDisabledException, TaskDoesNotExistException
     {
-        if(ConfigurationService.getBooleanProp("orionlibs.task-scheduler.enabled")
-                        && ConfigurationService.getBooleanProp("orionlibs.task-scheduler.cancellation.enabled"))
+        if(config.getBooleanProp("orionlibs.task-scheduler.enabled")
+                        && config.getBooleanProp("orionlibs.task-scheduler.cancellation.enabled"))
         {
             ScheduledTask task = getScheduledTaskByID(taskToCancel);
             if(task != null && !task.getTask().isCancelled())
             {
                 boolean wasTaskCancelled = task.getTask().cancel(true);
+                if(wasTaskCancelled)
+                {
+                    scheduledTasksToRunnablesMapper.remove(taskToCancel);
+                }
                 if(task.getCallbackAfterTaskIsCancelled() != null)
                 {
                     task.getCallbackAfterTaskIsCancelled().run();
@@ -124,12 +127,6 @@ public class SingleExecutionScheduleService
     }
 
 
-    public void shutdown()
-    {
-        executorService.shutdown();
-    }
-
-
     public Map<String, ScheduledTask> getScheduledTasksToRunnablesMapper()
     {
         return scheduledTasksToRunnablesMapper;
@@ -139,5 +136,11 @@ public class SingleExecutionScheduleService
     public ScheduledTask getScheduledTaskByID(String taskID)
     {
         return scheduledTasksToRunnablesMapper.get(taskID);
+    }
+
+
+    public ConfigurationService getConfig()
+    {
+        return config;
     }
 }

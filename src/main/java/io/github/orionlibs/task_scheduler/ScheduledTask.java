@@ -22,4 +22,5 @@ public class ScheduledTask
     private ScheduledFuture<?> task;
     private Runnable callbackAfterTaskCompletes;
     private Runnable callbackAfterTaskIsCancelled;
+    private int numberOfRetriesOnError;
 }

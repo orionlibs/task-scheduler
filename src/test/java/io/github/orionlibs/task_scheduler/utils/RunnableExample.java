@@ -5,19 +5,32 @@ import java.util.logging.Logger;
 
 public class RunnableExample implements Runnable
 {
-    private final static Logger log;
+    private static Logger log;
     private String logMessage;
-
-
-    public RunnableExample(String logMessage)
-    {
-        this.logMessage = logMessage;
-    }
+    private long delayUntilItThrowsException;
 
     static
     {
         log = Logger.getLogger(RunnableExample.class.getName());
     }
+
+    public RunnableExample()
+    {
+    }
+
+
+    public void addLogMessage(String logMessage)
+    {
+        this.logMessage = logMessage;
+    }
+
+
+    public void addLogMessageAndDelay(String logMessage, long delayUntilItThrowsException)
+    {
+        addLogMessage(logMessage);
+        this.delayUntilItThrowsException = delayUntilItThrowsException;
+    }
+
 
     public static void addLogHandler(Handler handler)
     {
@@ -35,5 +48,17 @@ public class RunnableExample implements Runnable
     public void run()
     {
         log.info(logMessage);
+        if(delayUntilItThrowsException > 0L)
+        {
+            try
+            {
+                Thread.sleep(delayUntilItThrowsException);
+                throw new RuntimeException("planned exception thrown");
+            }
+            catch(InterruptedException e)
+            {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }
