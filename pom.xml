@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.orionlibs</groupId>
     <artifactId>task-scheduler</artifactId>
-    <version>0.0.1</version>
+    <version>1.0.0</version>
     <name>Orion Task Scheduler</name>
     <description>Java library facilitating single-execution task scheduling</description>
     <url>https://github.com/orionlibs/task-scheduler</url>
