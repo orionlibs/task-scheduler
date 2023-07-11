@@ -64,11 +64,17 @@ public class SingleExecutionScheduleService
         {
             Runnable taskWrapper = TaskWrapper.buildTaskWrapper(taskToSchedule, scheduledTasksToRunnablesMapper, this);
             ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-            ScheduledFuture<?> task = executorService.schedule(taskWrapper, taskToSchedule.getDelay(), taskToSchedule.getUnit());
-            taskToSchedule.setTask(task);
-            scheduledTasksToRunnablesMapper.put(taskToSchedule.getTaskID(), taskToSchedule);
-            log.info("schedule started");
-            executorService.shutdown();
+            try
+            {
+                ScheduledFuture<?> task = executorService.schedule(taskWrapper, taskToSchedule.getDelay(), taskToSchedule.getUnit());
+                taskToSchedule.setTask(task);
+                scheduledTasksToRunnablesMapper.put(taskToSchedule.getTaskID(), taskToSchedule);
+                log.info("schedule started");
+            }
+            finally
+            {
+                executorService.shutdown();
+            }
         }
         else
         {
