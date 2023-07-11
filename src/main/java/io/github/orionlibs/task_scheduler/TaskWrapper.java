@@ -7,6 +7,11 @@ import java.util.concurrent.ConcurrentMap;
  */
 class TaskWrapper
 {
+    private TaskWrapper()
+    {
+    }
+
+
     static Runnable buildTaskWrapper(ScheduledTask taskToSchedule, ConcurrentMap<String, ScheduledTask> scheduledTasksToRunnablesMapper, SingleExecutionScheduleService singleExecutionScheduleService)
     {
         return new ScheduledRunnable(taskToSchedule, scheduledTasksToRunnablesMapper, singleExecutionScheduleService);
@@ -37,7 +42,7 @@ class TaskWrapper
             {
                 taskToSchedule.getTaskToSchedule().run();
             }
-            catch(Throwable e)
+            catch(Exception e)
             {
                 if(remainingRetries > 0)
                 {

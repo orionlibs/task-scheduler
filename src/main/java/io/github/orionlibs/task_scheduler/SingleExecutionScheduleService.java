@@ -19,8 +19,9 @@ import java.util.logging.Logger;
  */
 public class SingleExecutionScheduleService
 {
+    private static final String TASK_SCHEDULER_ENABLED = "orionlibs.task-scheduler.enabled";
+    private static final String SCHEDULER_CANCELLATION_ENABLED = "orionlibs.task-scheduler.cancellation.enabled";
     private Logger log;
-    private OrionConfiguration featureConfiguration;
     private ConcurrentMap<String, ScheduledTask> scheduledTasksToRunnablesMapper;
     private ConfigurationService config;
 
@@ -36,8 +37,7 @@ public class SingleExecutionScheduleService
 
     private void setupConfiguration() throws IOException
     {
-        this.featureConfiguration = OrionConfiguration.loadFeatureConfiguration();
-        config.registerConfiguration(featureConfiguration);
+        config.registerConfiguration(OrionConfiguration.loadFeatureConfiguration());
     }
 
 
@@ -65,7 +65,7 @@ public class SingleExecutionScheduleService
      */
     public void schedule(ScheduledTask taskToSchedule) throws FeatureIsDisabledException, RejectedExecutionException, InvalidArgumentException
     {
-        if(config.getBooleanProp("orionlibs.task-scheduler.enabled"))
+        if(config.getBooleanProp(TASK_SCHEDULER_ENABLED))
         {
             taskToSchedule.validate();
             Runnable taskWrapper = TaskWrapper.buildTaskWrapper(taskToSchedule, scheduledTasksToRunnablesMapper, this);
@@ -99,7 +99,7 @@ public class SingleExecutionScheduleService
      */
     public void schedule(Collection<ScheduledTask> tasksToSchedule) throws FeatureIsDisabledException, RejectedExecutionException, InvalidArgumentException
     {
-        if(config.getBooleanProp("orionlibs.task-scheduler.enabled"))
+        if(config.getBooleanProp(TASK_SCHEDULER_ENABLED))
         {
             if(tasksToSchedule != null)
             {
@@ -125,8 +125,8 @@ public class SingleExecutionScheduleService
      */
     public boolean cancel(String taskToCancel) throws FeatureIsDisabledException, TaskDoesNotExistException
     {
-        if(config.getBooleanProp("orionlibs.task-scheduler.enabled")
-                        && config.getBooleanProp("orionlibs.task-scheduler.cancellation.enabled"))
+        if(config.getBooleanProp(TASK_SCHEDULER_ENABLED)
+                        && config.getBooleanProp(SCHEDULER_CANCELLATION_ENABLED))
         {
             ScheduledTask task = getScheduledTaskByID(taskToCancel);
             if(task != null && !task.getTask().isCancelled())
