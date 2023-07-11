@@ -97,7 +97,7 @@ public class SingleExecutionScheduleService
     }
 
 
-    public boolean cancelTask(String taskToCancel) throws FeatureIsDisabledException, TaskDoesNotExistException
+    public boolean cancel(String taskToCancel) throws FeatureIsDisabledException, TaskDoesNotExistException
     {
         if(ConfigurationService.getBooleanProp("orionlibs.task-scheduler.enabled")
                         && ConfigurationService.getBooleanProp("orionlibs.task-scheduler.cancellation.enabled"))

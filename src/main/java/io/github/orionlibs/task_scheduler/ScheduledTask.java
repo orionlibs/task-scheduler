@@ -16,8 +16,9 @@ import lombok.Setter;
 public class ScheduledTask
 {
     private String taskID;
-    private Runnable command;
+    private Runnable taskToSchedule;
     private long delay;
     private TimeUnit unit;
     private ScheduledFuture<?> task;
+    private Runnable callback;
 }

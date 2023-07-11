@@ -9,11 +9,15 @@ public class Utils
         return () -> {
             try
             {
-                taskToSchedule.getCommand().run();
+                taskToSchedule.getTaskToSchedule().run();
             }
             finally
             {
                 scheduledTasksToRunnablesMapper.remove(taskToSchedule.getTaskID());
+                if(taskToSchedule.getCallback() != null)
+                {
+                    taskToSchedule.getCallback().run();
+                }
             }
         };
     }
