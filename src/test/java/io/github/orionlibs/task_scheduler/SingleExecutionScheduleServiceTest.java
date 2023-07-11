@@ -265,7 +265,7 @@ public class SingleExecutionScheduleServiceTest
 
 
     @Test
-    void test_schedule_withCallback() throws Exception
+    void test_schedule_withCallbackAfterTaskCompletes() throws Exception
     {
         Callback.log.addHandler(listLogHandler);
         singleExecutionScheduler.schedule(ScheduledTask.builder()
@@ -273,7 +273,7 @@ public class SingleExecutionScheduleServiceTest
                         .taskToSchedule(new RunnableExample("Runnable is running"))
                         .delay(100)
                         .unit(TimeUnit.MILLISECONDS)
-                        .callback(new Callback())
+                        .callbackAfterTaskCompletes(new Callback())
                         .build());
         singleExecutionScheduler.shutdown();
         assertTrue(listLogHandler.getLogRecords().stream()
@@ -281,6 +281,27 @@ public class SingleExecutionScheduleServiceTest
         Thread.sleep(200);
         assertTrue(listLogHandler.getLogRecords().stream()
                         .anyMatch(record -> record.getMessage().contains("Runnable is running")));
+        assertTrue(listLogHandler.getLogRecords().stream()
+                        .anyMatch(record -> record.getMessage().contains("callback has been called")));
+    }
+
+
+    @Test
+    void test_cancelTask_withCallbackAfterTaskIsCancelled() throws Exception
+    {
+        Callback.log.addHandler(listLogHandler);
+        singleExecutionScheduler.schedule(ScheduledTask.builder()
+                        .taskID("runnable")
+                        .taskToSchedule(new RunnableExample("Runnable is running"))
+                        .delay(200)
+                        .unit(TimeUnit.MILLISECONDS)
+                        .callbackAfterTaskIsCancelled(new Callback())
+                        .build());
+        singleExecutionScheduler.shutdown();
+        singleExecutionScheduler.cancel("runnable");
+        assertTrue(listLogHandler.getLogRecords().stream()
+                        .anyMatch(record -> record.getMessage().contains("schedule started")));
+        Thread.sleep(300);
         assertTrue(listLogHandler.getLogRecords().stream()
                         .anyMatch(record -> record.getMessage().contains("callback has been called")));
     }

@@ -14,9 +14,9 @@ public class Utils
             finally
             {
                 scheduledTasksToRunnablesMapper.remove(taskToSchedule.getTaskID());
-                if(taskToSchedule.getCallback() != null)
+                if(taskToSchedule.getCallbackAfterTaskCompletes() != null)
                 {
-                    taskToSchedule.getCallback().run();
+                    taskToSchedule.getCallbackAfterTaskCompletes().run();
                 }
             }
         };

@@ -102,9 +102,15 @@ public class SingleExecutionScheduleService
         if(ConfigurationService.getBooleanProp("orionlibs.task-scheduler.enabled")
                         && ConfigurationService.getBooleanProp("orionlibs.task-scheduler.cancellation.enabled"))
         {
-            if(getScheduledTaskByID(taskToCancel) != null && !getScheduledTaskByID(taskToCancel).getTask().isCancelled())
+            ScheduledTask task = getScheduledTaskByID(taskToCancel);
+            if(task != null && !task.getTask().isCancelled())
             {
-                return getScheduledTaskByID(taskToCancel).getTask().cancel(true);
+                boolean wasTaskCancelled = task.getTask().cancel(true);
+                if(task.getCallbackAfterTaskIsCancelled() != null)
+                {
+                    task.getCallbackAfterTaskIsCancelled().run();
+                }
+                return wasTaskCancelled;
             }
             else
             {

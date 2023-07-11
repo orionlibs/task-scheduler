@@ -20,5 +20,6 @@ public class ScheduledTask
     private long delay;
     private TimeUnit unit;
     private ScheduledFuture<?> task;
-    private Runnable callback;
+    private Runnable callbackAfterTaskCompletes;
+    private Runnable callbackAfterTaskIsCancelled;
 }
