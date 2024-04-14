@@ -8,3 +8,5 @@
 **/.idea
 **/*.iml
 .pmd
+.profileconfig.json
+profile.jfr
