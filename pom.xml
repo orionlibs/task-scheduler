@@ -4,7 +4,7 @@
     <artifactId>task-scheduler</artifactId>
     <version>1.0.1</version>
     <name>Orion Task Scheduler</name>
-    <description>Java library facilitating single-execution task scheduling</description>
+    <description>Java library facilitating single-execution task scheduling.</description>
     <url>https://github.com/orionlibs/task-scheduler</url>
     
     
